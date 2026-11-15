@@ -274,6 +274,26 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
 .snowy > .snow-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .snowy > :not(.snow-cv):not(.scroll-cue){position:relative;z-index:1}
 
+/* fireworks stage */
+.fw-stage{position:fixed;inset:0;z-index:40;background:var(--cream);transition:opacity .9s ease}
+.fw-stage.done{opacity:0;pointer-events:none}
+.fw-stage.gone{display:none}
+#fw{display:block;width:100%;height:100%}
+
+/* hearts around names */
+.hero h1{position:relative}
+.hero h1 .hearts{position:absolute;inset:-28% -18%;pointer-events:none;z-index:2;display:block}
+.heart{
+  position:absolute;width:var(--s);height:var(--s);color:var(--c);opacity:0;
+  animation:heart var(--d) cubic-bezier(.2,.7,.3,1) forwards;
+}
+.heart svg{display:block;width:100%;height:100%}
+@keyframes heart{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(var(--r))}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(var(--r))}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.85) rotate(var(--r))}
+}
+
 /* reveal */
 .rv{opacity:0;transform:translateY(22px);transition:opacity .9s ease, transform .9s cubic-bezier(.22,.8,.26,1)}
 .rv.in{opacity:1;transform:none}
@@ -311,6 +331,8 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
   <canvas id="snow" aria-hidden="true"></canvas>
 </div>
 
+<div class="fw-stage" id="fw-stage" aria-hidden="true"><canvas id="fw"></canvas></div>
+
 <!-- ================= PAGE ================= -->
 <main>
 
@@ -330,7 +352,7 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
       <circle cx="110" cy="16" r="3.2" fill="currentColor"/>
     </svg>
     <p class="kicker rv">Παντρευόμαστε</p>
-    <h1 class="rv"><span data-k="bride"></span><span class="amp">&amp;</span><span data-k="groom"></span></h1>
+    <h1 class="rv"><span data-k="bride"></span><span class="amp">&amp;</span><span data-k="groom"></span><span class="hearts" aria-hidden="true"></span></h1>
     <p class="date-line rv" data-k="dateLong"></p>
     <p class="place-line rv" data-k="city"></p>
     <svg class="branch bottom" viewBox="0 0 220 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
@@ -570,23 +592,137 @@ function tick(){
 }
 tick(); setInterval(tick, 1000);
 
-// envelope open
-const intro = $("#intro");
+// envelope open -> fireworks -> hero with hearts
+const intro = $("#intro"), fwStage = $("#fw-stage");
 let opened = false;
 function openEnvelope(){
   if (opened) return; opened = true;
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo(0, 0);
   intro.classList.add("open");
-  setTimeout(() => intro.classList.add("slide"), reduce ? 0 : 1050);
+  if (REDUCE){
+    intro.classList.add("gone"); fwStage.classList.add("gone");
+    document.body.classList.remove("locked"); stopSnow();
+    return;
+  }
+  setTimeout(() => { intro.classList.add("slide"); startFireworks(); }, 1050);
+  setTimeout(() => { intro.classList.add("gone"); stopSnow(); }, 1800);
+  setTimeout(() => { fwStage.classList.add("done"); startHearts(); }, 4400);
   setTimeout(() => {
-    intro.classList.add("gone");
+    fwStage.classList.add("gone"); stopFireworks();
     document.body.classList.remove("locked");
-    stopSnow();
-  }, reduce ? 50 : 1800);
+  }, 5300);
 }
 intro.addEventListener("click", openEnvelope);
 intro.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEnvelope(); } });
+
+// fireworks
+const fwCv = $("#fw"), fctx = fwCv.getContext("2d");
+const FW_COLORS = ["#7a2e3e","#5b1f2c","#a8455a","#c9707f","#b8976a","#dcc39b"];
+let fwW = 0, fwH = 0, rockets = [], sparks = [], fwRAF = null, fwTimers = [];
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+function fwSize(){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  fwW = innerWidth; fwH = innerHeight;
+  fwCv.width = fwW * dpr; fwCv.height = fwH * dpr;
+  fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  fctx.fillStyle = "#f5f1ec"; fctx.fillRect(0, 0, fwW, fwH);
+}
+function launch(opts = {}){
+  const x0 = fwW * (0.2 + Math.random() * 0.6);
+  rockets.push({
+    x0, y0: fwH + 10,
+    x1: opts.x ?? x0 + (Math.random() - .5) * fwW * .2,
+    y1: opts.y ?? fwH * (0.16 + Math.random() * 0.3),
+    t: 0, dur: 38 + Math.random() * 12,
+    c: opts.c || pick(FW_COLORS), heart: !!opts.heart
+  });
+}
+function explode(r){
+  const k = Math.min(fwW, fwH) / 700 + .35;
+  if (r.heart){
+    const n = 90;
+    for (let i = 0; i < n; i++){
+      const t = (i / n) * Math.PI * 2;
+      const hx = 16 * Math.sin(t) ** 3;
+      const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+      sparks.push({ x: r.x1, y: r.y1, vx: hx * .22 * k, vy: hy * .22 * k, life: 1,
+        decay: .011, c: i % 3 ? "#7a2e3e" : "#b8976a", rad: 2.2, g: .012 });
+    }
+    return;
+  }
+  const n = 64, c2 = pick(FW_COLORS);
+  for (let i = 0; i < n; i++){
+    const a = (i / n) * Math.PI * 2 + Math.random() * .1;
+    const sp = (2 + Math.random() * 3.2) * k;
+    sparks.push({ x: r.x1, y: r.y1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1,
+      decay: .012 + Math.random() * .01, c: Math.random() < .7 ? r.c : c2, rad: 1.5 + Math.random() * 1.4, g: .045 });
+  }
+}
+function fwFrame(){
+  fctx.fillStyle = "rgba(245,241,236,0.26)";
+  fctx.fillRect(0, 0, fwW, fwH);
+  rockets = rockets.filter(r => {
+    r.t++;
+    const p = 1 - Math.pow(1 - r.t / r.dur, 3);
+    const x = r.x0 + (r.x1 - r.x0) * p, y = r.y0 + (r.y1 - r.y0) * p;
+    fctx.globalAlpha = 1; fctx.fillStyle = r.c;
+    fctx.beginPath(); fctx.arc(x, y, 2.2, 0, Math.PI * 2); fctx.fill();
+    if (r.t >= r.dur){ explode(r); return false; }
+    return true;
+  });
+  sparks = sparks.filter(s => {
+    s.vx *= .985; s.vy = s.vy * .985 + s.g;
+    s.x += s.vx; s.y += s.vy; s.life -= s.decay;
+    if (s.life <= 0) return false;
+    fctx.globalAlpha = Math.max(0, s.life);
+    fctx.fillStyle = s.c;
+    fctx.beginPath(); fctx.arc(s.x, s.y, s.rad, 0, Math.PI * 2); fctx.fill();
+    return true;
+  });
+  fctx.globalAlpha = 1;
+  fwRAF = requestAnimationFrame(fwFrame);
+}
+function startFireworks(){
+  fwSize();
+  fwRAF = requestAnimationFrame(fwFrame);
+  [0, 250, 600, 900, 1250, 1500].forEach(ms => fwTimers.push(setTimeout(() => launch(), ms)));
+  fwTimers.push(setTimeout(() => launch(), 1100));
+  // final heart-shaped firework in the center
+  fwTimers.push(setTimeout(() => launch({ x: fwW / 2, y: fwH * .38, heart: true, c: "#7a2e3e" }), 1700));
+}
+function stopFireworks(){
+  fwTimers.forEach(clearTimeout); fwTimers = [];
+  if (fwRAF) cancelAnimationFrame(fwRAF); fwRAF = null;
+}
+
+// hearts around the names
+const heartsEl = document.querySelector(".hearts");
+const HEART_SVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.6-4.7-10-9.4C.4 8.3 2.4 4.5 6.1 4.5c2.3 0 3.6 1.3 5.9 3.6 2.3-2.3 3.6-3.6 5.9-3.6 3.7 0 5.7 3.8 4.1 7.1C19.6 16.3 12 21 12 21z"/></svg>';
+const HEART_COLORS = ["#f3d3d9","#e8aab5","#dcc39b","#f6eee4","#d98a98"];
+let heartTimer = null, heroVisible = true;
+function spawnHeart(burst){
+  const a = Math.random() * Math.PI * 2;
+  const el = document.createElement("i");
+  el.className = "heart";
+  el.innerHTML = HEART_SVG;
+  el.style.left = (50 + Math.cos(a) * (burst ? 30 : 44)) + "%";
+  el.style.top  = (50 + Math.sin(a) * (burst ? 30 : 42)) + "%";
+  const dist = burst ? 60 + Math.random() * 50 : 20;
+  el.style.setProperty("--s", (burst ? 12 : 10) + Math.random() * 14 + "px");
+  el.style.setProperty("--c", pick(HEART_COLORS));
+  el.style.setProperty("--dx", Math.cos(a) * dist + "px");
+  el.style.setProperty("--dy", (burst ? Math.sin(a) * dist : -40 - Math.random() * 40) + "px");
+  el.style.setProperty("--d", (burst ? 1.6 : 2.4) + Math.random() * 1.2 + "s");
+  el.style.setProperty("--r", (Math.random() - .5) * 40 + "deg");
+  el.addEventListener("animationend", () => el.remove());
+  heartsEl.appendChild(el);
+}
+function startHearts(){
+  if (REDUCE || !heartsEl) return;
+  for (let i = 0; i < 18; i++) setTimeout(() => spawnHeart(true), 300 + i * 40);
+  heartTimer = setInterval(() => { if (heroVisible && !document.hidden) spawnHeart(false); }, 700);
+}
+new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe($(".hero"));
 
 // snow (envelope + dark sections)
 const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
