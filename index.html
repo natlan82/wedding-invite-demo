@@ -43,11 +43,13 @@ a{color:inherit}
   position:fixed;inset:0;z-index:50;
   perspective:1800px;perspective-origin:50% 0;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transition:visibility 0s 3.4s;
+  transition:opacity .7s ease;
 }
-.intro.gone{visibility:hidden;pointer-events:none}
-.envelope{position:absolute;inset:0;transition:transform 1.3s cubic-bezier(.7,0,.25,1)}
-.intro.slide .envelope{transform:translateY(105%)}
+.intro.slide{opacity:0}
+.intro.gone{display:none}
+.envelope{position:absolute;inset:0;transition:transform .75s cubic-bezier(.55,0,.75,.2)}
+.intro.slide .envelope{transform:translateY(100%)}
+.intro.slide .flap{opacity:0;transition:opacity .2s}
 .env-back{
   position:absolute;inset:0;
   background:radial-gradient(90% 60% at 50% 30%, #4a1823, var(--deep));
@@ -555,12 +557,12 @@ function openEnvelope(){
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo(0, 0);
   intro.classList.add("open");
-  setTimeout(() => intro.classList.add("slide"), reduce ? 0 : 1300);
+  setTimeout(() => intro.classList.add("slide"), reduce ? 0 : 1050);
   setTimeout(() => {
     intro.classList.add("gone");
     document.body.classList.remove("locked");
     stopSnow();
-  }, reduce ? 50 : 2700);
+  }, reduce ? 50 : 1800);
 }
 intro.addEventListener("click", openEnvelope);
 intro.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEnvelope(); } });
