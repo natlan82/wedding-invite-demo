@@ -257,6 +257,23 @@ footer{padding:80px 0 60px;text-align:center}
 footer .sig{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(34px,9vw,52px);color:var(--green)}
 footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);opacity:.7}
 
+/* dark hero + timeline + snow */
+.hero.band{background:radial-gradient(120% 90% at 50% 40%, var(--green-2), var(--green) 55%, var(--deep) 100%)}
+.hero.band .kicker{color:var(--gold-2)}
+.hero.band h1{color:#f6eee4}
+.hero.band h1 .amp{color:var(--gold-2)}
+.hero.band .date-line{color:#f6eee4}
+.hero.band .place-line{color:rgba(247,242,232,.7)}
+.band .branch{color:var(--gold-2)}
+.hero.band .scroll-cue{background:linear-gradient(var(--gold-2),transparent)}
+.band .tl time{color:#f6eee4}
+.band .tl p{color:rgba(247,242,232,.72)}
+.band .tl::before{background:var(--green);border-color:var(--gold-2)}
+.band .timeline::before{background:var(--gold-2)}
+.snowy{position:relative;overflow:hidden}
+.snowy > .snow-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.snowy > :not(.snow-cv):not(.scroll-cue){position:relative;z-index:1}
+
 /* reveal */
 .rv{opacity:0;transform:translateY(22px);transition:opacity .9s ease, transform .9s cubic-bezier(.22,.8,.26,1)}
 .rv.in{opacity:1;transform:none}
@@ -298,7 +315,8 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
 <main>
 
   <!-- HERO -->
-  <header class="hero">
+  <header class="hero band snowy">
+    <canvas class="snow-cv" aria-hidden="true"></canvas>
     <svg class="branch top" viewBox="0 0 220 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
       <path d="M10 22 C60 12 160 12 210 22"/>
       <g fill="currentColor" fill-opacity=".18">
@@ -348,7 +366,8 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
   </section>
 
   <!-- PARENTS + KOUMPAROI -->
-  <section class="band">
+  <section class="band snowy">
+    <canvas class="snow-cv" aria-hidden="true"></canvas>
     <div class="wrap">
       <p class="eyebrow rv">Με την ευχή των γονιών μας</p>
       <h2 class="rv">Οι οικογένειές μας</h2>
@@ -374,7 +393,8 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
   </section>
 
   <!-- TIMELINE -->
-  <section style="padding-top:0">
+  <section class="band snowy">
+    <canvas class="snow-cv" aria-hidden="true"></canvas>
     <div class="wrap">
       <p class="eyebrow rv">Το πρόγραμμα</p>
       <h2 class="rv">Η βραδιά βήμα βήμα</h2>
@@ -383,7 +403,7 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
   </section>
 
   <!-- INFO -->
-  <section style="padding-top:0">
+  <section>
     <div class="wrap">
       <p class="eyebrow rv">Χρήσιμα</p>
       <h2 class="rv">Καλό να ξέρετε</h2>
@@ -392,7 +412,8 @@ footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;te
   </section>
 
   <!-- RSVP -->
-  <section class="band" id="rsvp">
+  <section class="band snowy" id="rsvp">
+    <canvas class="snow-cv" aria-hidden="true"></canvas>
     <div class="wrap">
       <p class="eyebrow rv">RSVP</p>
       <h2 class="rv">Θα είστε μαζί μας;</h2>
@@ -567,35 +588,55 @@ function openEnvelope(){
 intro.addEventListener("click", openEnvelope);
 intro.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEnvelope(); } });
 
-// snow on the envelope
-const cv = $("#snow"), ctx = cv.getContext("2d");
-let flakes = [], snowRAF = null;
-function sizeSnow(){
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const n = Math.round(Math.min(90, innerWidth / 9));
-  flakes = Array.from({ length: n }, () => ({
-    x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-    r: Math.random() * 2.2 + .6, s: Math.random() * .6 + .25,
-    d: Math.random() * Math.PI * 2, o: Math.random() * .5 + .35
-  }));
-}
-function drawSnow(){
-  ctx.clearRect(0, 0, innerWidth, innerHeight);
-  for (const f of flakes){
-    f.y += f.s; f.d += .01; f.x += Math.sin(f.d) * .3;
-    if (f.y > innerHeight + 5){ f.y = -5; f.x = Math.random() * innerWidth; }
-    ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,250,244,${f.o})`; ctx.fill();
+// snow (envelope + dark sections)
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function makeSnow(cv){
+  const ctx = cv.getContext("2d");
+  let w = 0, h = 0, flakes = [], raf = null;
+  function size(){
+    const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    w = r.width; h = r.height;
+    cv.width = w * dpr; cv.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(Math.min(110, Math.max(25, w * h / 9000)));
+    flakes = Array.from({ length: n }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      r: Math.random() * 2.2 + .6, s: Math.random() * .6 + .25,
+      d: Math.random() * Math.PI * 2, o: Math.random() * .5 + .3
+    }));
   }
-  snowRAF = requestAnimationFrame(drawSnow);
+  function draw(){
+    ctx.clearRect(0, 0, w, h);
+    for (const f of flakes){
+      f.y += f.s; f.d += .01; f.x += Math.sin(f.d) * .3;
+      if (f.y > h + 5){ f.y = -5; f.x = Math.random() * w; }
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,250,244,${f.o})`; ctx.fill();
+    }
+    raf = requestAnimationFrame(draw);
+  }
+  return {
+    start(){ if (raf || REDUCE) return; size(); draw(); },
+    stop(){ if (raf) cancelAnimationFrame(raf); raf = null; },
+    resize(){ if (raf) size(); },
+    get on(){ return !!raf; }
+  };
 }
-function stopSnow(){ if (snowRAF) cancelAnimationFrame(snowRAF); snowRAF = null; }
-if (!matchMedia("(prefers-reduced-motion: reduce)").matches){
-  sizeSnow(); drawSnow();
-  addEventListener("resize", () => { if (snowRAF) sizeSnow(); });
-}
+const introSnow = makeSnow($("#snow"));
+introSnow.start();
+function stopSnow(){ introSnow.stop(); }
+
+const sectionSnows = [...document.querySelectorAll(".snowy > .snow-cv")].map(cv => {
+  const sn = makeSnow(cv); sn.el = cv.parentElement; return sn;
+});
+const snowIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    const sn = sectionSnows.find(x => x.el === e.target);
+    e.isIntersecting ? sn.start() : sn.stop();
+  });
+});
+sectionSnows.forEach(sn => snowIO.observe(sn.el));
+addEventListener("resize", () => { introSnow.resize(); sectionSnows.forEach(sn => sn.resize()); });
 
 // reveal on scroll
 const io = new IntersectionObserver(entries => {
