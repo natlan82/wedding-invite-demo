@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Σοφία &amp; Κωνσταντίνος · Προσκλητήριο Γάμου</title>
+<meta name="description" content="Σας προσκαλούμε στον γάμο μας">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Commissioner:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#5b1f2c;
+  --green-2:#6c2735;
+  --green-3:#7d3141;
+  --deep:#3f1520;
+  --cream:#f5f1ec;
+  --paper:#fbf9f6;
+  --ink:#2b2224;
+  --muted:#76696a;
+  --gold:#b8976a;
+  --gold-2:#dcc39b;
+  --line:rgba(91,31,44,.13);
+  --serif:"Noto Serif Display", Georgia, serif;
+  --sans:"Commissioner", system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--cream);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+body.locked{overflow:hidden;height:100svh}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+a{color:inherit}
+
+/* ---------- INTRO / FULL-SCREEN ENVELOPE ---------- */
+.intro{
+  position:fixed;inset:0;z-index:50;
+  perspective:1800px;perspective-origin:50% 0;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:visibility 0s 3.4s;
+}
+.intro.gone{visibility:hidden;pointer-events:none}
+.envelope{position:absolute;inset:0;transition:transform 1.3s cubic-bezier(.7,0,.25,1)}
+.intro.slide .envelope{transform:translateY(105%)}
+.env-back{
+  position:absolute;inset:0;
+  background:radial-gradient(90% 60% at 50% 30%, #4a1823, var(--deep));
+}
+.env-front{
+  position:absolute;inset:0;z-index:3;
+  background:
+    radial-gradient(120% 70% at 50% 100%, var(--green-2), var(--green) 60%, #521a26 100%);
+  clip-path:polygon(0 0,50% 55%,100% 0,100% 100%,0 100%);
+}
+/* side folds */
+.env-front::before{
+  content:"";position:absolute;inset:0;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), rgba(0,0,0,.18) 50%, transparent calc(50% + 1px)) left bottom/50% 100% no-repeat,
+    linear-gradient(to top left,  transparent calc(50% - 1px), rgba(0,0,0,.18) 50%, transparent calc(50% + 1px)) right bottom/50% 100% no-repeat;
+  opacity:.6;
+}
+.flap{
+  position:absolute;left:0;right:0;top:0;height:55%;z-index:4;
+  background:linear-gradient(180deg,#7a2e3e 0%,var(--green-2) 70%,#62222f 100%);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  transform-origin:top center;
+  transition:transform 1s cubic-bezier(.6,.05,.3,1), z-index 0s .5s;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
+  display:flex;justify-content:center;
+}
+.flap-text{
+  margin-top:clamp(48px,11vh,110px);text-align:center;color:var(--gold-2);
+}
+.flap-text .k1{font-size:11px;letter-spacing:.38em;text-transform:uppercase;opacity:.85}
+.flap-text .k2{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(20px,5vw,28px);color:#f3e6d3;margin-top:8px}
+.seal{
+  position:absolute;left:50%;top:55%;z-index:5;
+  width:clamp(96px,24vw,138px);aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #f1dfbd, var(--gold) 55%, #8d6c40 100%);
+  box-shadow:0 6px 16px rgba(0,0,0,.4), inset 0 0 0 5px rgba(255,255,255,.14), inset 0 0 0 10px rgba(0,0,0,.08);
+  display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;font-size:clamp(28px,7vw,40px);color:#fff9ec;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);
+  transition:transform .45s ease, opacity .45s ease;
+}
+.intro:hover .seal{transform:translate(-50%,-50%) scale(1.04)}
+.front-text{
+  position:absolute;left:0;right:0;bottom:clamp(40px,9vh,90px);z-index:4;
+  text-align:center;color:#f3e6d3;
+  transition:opacity .4s;
+}
+.front-text .names{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(30px,7.5vw,56px);line-height:1.15;padding:0 16px}
+.front-text .date{margin-top:10px;font-size:12px;letter-spacing:.34em;color:var(--gold-2)}
+.tap-hint{
+  margin-top:28px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#f3e6d3;
+  display:inline-flex;align-items:center;gap:10px;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+.tap-hint::before,.tap-hint::after{content:"";width:26px;height:1px;background:currentColor;opacity:.5}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+#snow{position:absolute;inset:0;z-index:6;pointer-events:none;width:100%;height:100%}
+
+/* open sequence */
+.intro.open .seal{opacity:0;transform:translate(-50%,-50%) scale(.7)}
+.intro.open .front-text{opacity:0}
+.flap-text{transition:opacity .35s}
+.intro.open .flap-text{opacity:0}
+#snow{transition:opacity .6s}
+.intro.slide #snow{opacity:0}
+.intro.open .flap{transform:rotateX(180deg);z-index:1;transition-delay:.3s,.8s}
+
+/* ---------- PAGE ---------- */
+main{opacity:1}
+
+.wrap{width:min(92vw,640px);margin:0 auto}
+section{padding:clamp(64px,12vw,104px) 0;text-align:center}
+
+.hero{
+  min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 0 56px;position:relative;text-align:center;
+}
+.hero h1 span{display:block}
+.hero .kicker{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+.hero h1{
+  font-family:var(--serif);font-weight:300;font-style:italic;
+  font-size:clamp(42px,11.5vw,88px);line-height:1.05;color:var(--green);
+}
+.hero h1 .amp{display:block;font-size:.5em;color:var(--gold);margin:.12em 0}
+.hero .date-line{
+  margin-top:30px;font-family:var(--serif);font-size:clamp(18px,4.6vw,22px);color:var(--ink);
+}
+.hero .place-line{margin-top:4px;color:var(--muted);font-size:15px}
+.branch{width:min(56vw,220px);height:auto;color:var(--gold);opacity:.85}
+.branch.top{margin-bottom:26px}
+.branch.bottom{margin-top:30px;transform:scaleY(-1)}
+
+.scroll-cue{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  width:1px;height:42px;background:linear-gradient(var(--gold),transparent);
+  animation:cue 2.2s ease-in-out infinite;
+}
+@keyframes cue{0%{transform:translateX(-50%) scaleY(0);transform-origin:top}50%{transform:translateX(-50%) scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:translateX(-50%) scaleY(0);transform-origin:bottom}}
+
+.eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+h2{font-family:var(--serif);font-weight:300;font-size:clamp(32px,8vw,46px);color:var(--green);line-height:1.15;margin-bottom:18px}
+.lead{color:var(--muted);max-width:30em;margin:0 auto;font-size:16px}
+.divider{width:44px;height:1px;background:var(--gold);margin:22px auto;opacity:.7}
+
+/* invitation text */
+.invite-text{font-family:var(--serif);font-size:clamp(19px,4.8vw,23px);line-height:1.65;color:var(--ink);font-weight:300}
+.invite-text em{color:var(--green)}
+
+/* countdown */
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:30px}
+.cd{
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 4px 14px;
+}
+.cd b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(28px,8vw,40px);color:var(--green);line-height:1;font-variant-numeric:tabular-nums}
+.cd span{display:block;margin-top:8px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 22px;border-radius:999px;
+  font-size:14px;font-weight:500;letter-spacing:.04em;text-decoration:none;
+  transition:background .25s,color .25s,transform .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-solid{background:var(--green);color:var(--cream)}
+.btn-solid:hover{background:var(--green-3)}
+.btn-ghost{border:1px solid var(--green);color:var(--green)}
+.btn-ghost:hover{background:var(--green);color:var(--cream)}
+.btn svg{width:16px;height:16px}
+
+/* green band */
+.band{background:var(--green);color:var(--cream)}
+.band h2{color:var(--cream)}
+.band .lead,.band .muted{color:rgba(247,242,232,.72)}
+.band .eyebrow{color:var(--gold-2)}
+
+/* people */
+.people{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:10px}
+.people h3{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-2);font-weight:500;margin-bottom:10px}
+.people p{font-family:var(--serif);font-size:19px;line-height:1.5;font-weight:300}
+.koumparoi{margin-top:38px;padding-top:30px;border-top:1px solid rgba(247,242,232,.15)}
+
+/* places */
+.places{display:grid;gap:18px;margin-top:34px;text-align:left}
+.place{
+  background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:26px 24px;
+  display:grid;gap:6px;
+}
+.place .ptime{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.place h3{font-family:var(--serif);font-weight:400;font-size:24px;color:var(--green);line-height:1.25}
+.place p{color:var(--muted);font-size:15px}
+.place .btn{justify-self:start;margin-top:12px}
+
+/* timeline */
+.timeline{margin:34px auto 0;max-width:420px;text-align:left;position:relative;padding-left:30px}
+.timeline::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:1px;background:var(--gold);opacity:.5}
+.tl{position:relative;padding:0 0 26px}
+.tl:last-child{padding-bottom:0}
+.tl::before{content:"";position:absolute;left:-29px;top:7px;width:11px;height:11px;border-radius:50%;background:var(--cream);border:1px solid var(--gold)}
+.tl time{font-family:var(--serif);font-size:22px;color:var(--green)}
+.tl p{color:var(--muted);font-size:15px}
+
+/* info cards */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px;text-align:left}
+.info{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px}
+.info h3{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:6px}
+.info p{font-size:15px;color:var(--ink)}
+.swatches{display:flex;gap:6px;margin-top:10px}
+.swatches i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line)}
+
+/* rsvp */
+.rsvp-card{
+  background:var(--paper);border-radius:22px;padding:30px 22px;margin-top:30px;text-align:left;
+  color:var(--ink);
+}
+.field{display:grid;gap:7px;margin-bottom:18px}
+.field label,.field legend{font-size:13px;font-weight:500;color:var(--green);letter-spacing:.02em}
+.field input[type=text],.field input[type=number],.field textarea{
+  width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;
+  font:inherit;font-size:16px;color:var(--ink);outline:none;transition:border-color .2s, box-shadow .2s;
+}
+.field input:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,151,106,.18)}
+.field textarea{min-height:90px;resize:vertical}
+fieldset{border:0}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice label{
+  display:block;text-align:center;padding:13px 10px;border-radius:12px;border:1px solid var(--line);
+  background:#fff;font-weight:400;color:var(--ink);cursor:pointer;transition:all .2s;font-size:15px;
+}
+.choice input:checked + label{background:var(--green);border-color:var(--green);color:var(--cream)}
+.choice input:focus-visible + label{box-shadow:0 0 0 3px rgba(184,151,106,.35)}
+.rsvp-card .btn{width:100%;padding:15px}
+.deadline{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+.thanks{display:none;text-align:center;padding:20px 6px}
+.thanks h3{font-family:var(--serif);font-weight:300;font-size:30px;color:var(--green);margin-bottom:8px}
+.thanks p{color:var(--muted)}
+.rsvp-card.done form{display:none}
+.rsvp-card.done .thanks{display:block}
+
+/* footer */
+footer{padding:80px 0 60px;text-align:center}
+footer .sig{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(34px,9vw,52px);color:var(--green)}
+footer small{display:block;margin-top:24px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);opacity:.7}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .9s ease, transform .9s cubic-bezier(.22,.8,.26,1)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:420px){
+  .people{grid-template-columns:1fr;gap:22px}
+  .info-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- ================= INTRO ================= -->
+<div class="intro" id="intro" role="button" tabindex="0" aria-label="Άνοιγμα προσκλητηρίου">
+  <div class="envelope">
+    <div class="env-back"></div>
+    <div class="env-front"></div>
+    <div class="flap">
+      <div class="flap-text">
+        <div class="k1">Προσκλητήριο γάμου</div>
+        <div class="k2" data-k="introText"></div>
+      </div>
+    </div>
+    <div class="seal" data-k="monogram"></div>
+    <div class="front-text">
+      <div class="names" data-k="namesShort"></div>
+      <div class="date" data-k="dateShort"></div>
+      <div class="tap-hint">Πατήστε για άνοιγμα</div>
+    </div>
+  </div>
+  <canvas id="snow" aria-hidden="true"></canvas>
+</div>
+
+<!-- ================= PAGE ================= -->
+<main>
+
+  <!-- HERO -->
+  <header class="hero">
+    <svg class="branch top" viewBox="0 0 220 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+      <path d="M10 22 C60 12 160 12 210 22"/>
+      <g fill="currentColor" fill-opacity=".18">
+        <ellipse cx="40" cy="12" rx="10" ry="3.6" transform="rotate(-18 40 12)"/>
+        <ellipse cx="62" cy="27" rx="10" ry="3.6" transform="rotate(20 62 27)"/>
+        <ellipse cx="84" cy="9"  rx="10" ry="3.6" transform="rotate(-12 84 9)"/>
+        <ellipse cx="136" cy="9"  rx="10" ry="3.6" transform="rotate(12 136 9)"/>
+        <ellipse cx="158" cy="27" rx="10" ry="3.6" transform="rotate(-20 158 27)"/>
+        <ellipse cx="180" cy="12" rx="10" ry="3.6" transform="rotate(18 180 12)"/>
+      </g>
+      <circle cx="110" cy="16" r="3.2" fill="currentColor"/>
+    </svg>
+    <p class="kicker rv">Παντρευόμαστε</p>
+    <h1 class="rv"><span data-k="bride"></span><span class="amp">&amp;</span><span data-k="groom"></span></h1>
+    <p class="date-line rv" data-k="dateLong"></p>
+    <p class="place-line rv" data-k="city"></p>
+    <svg class="branch bottom" viewBox="0 0 220 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+      <path d="M10 22 C60 12 160 12 210 22"/>
+      <g fill="currentColor" fill-opacity=".18">
+        <ellipse cx="40" cy="12" rx="10" ry="3.6" transform="rotate(-18 40 12)"/>
+        <ellipse cx="62" cy="27" rx="10" ry="3.6" transform="rotate(20 62 27)"/>
+        <ellipse cx="158" cy="27" rx="10" ry="3.6" transform="rotate(-20 158 27)"/>
+        <ellipse cx="180" cy="12" rx="10" ry="3.6" transform="rotate(18 180 12)"/>
+      </g>
+    </svg>
+    <div class="scroll-cue" aria-hidden="true"></div>
+  </header>
+
+  <!-- INVITATION + COUNTDOWN -->
+  <section>
+    <div class="wrap">
+      <p class="invite-text rv" data-k="inviteText" data-html></p>
+      <div class="divider rv"></div>
+      <div class="countdown rv" aria-label="Αντίστροφη μέτρηση">
+        <div class="cd"><b id="cd-d">0</b><span>Ημέρες</span></div>
+        <div class="cd"><b id="cd-h">0</b><span>Ώρες</span></div>
+        <div class="cd"><b id="cd-m">0</b><span>Λεπτά</span></div>
+        <div class="cd"><b id="cd-s">0</b><span>Δευτ.</span></div>
+      </div>
+      <div class="rv" style="margin-top:26px">
+        <a class="btn btn-ghost" id="cal-link" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          Προσθήκη στο ημερολόγιο
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARENTS + KOUMPAROI -->
+  <section class="band">
+    <div class="wrap">
+      <p class="eyebrow rv">Με την ευχή των γονιών μας</p>
+      <h2 class="rv">Οι οικογένειές μας</h2>
+      <div class="people rv">
+        <div><h3>Γονείς νύφης</h3><p data-k="brideParents"></p></div>
+        <div><h3>Γονείς γαμπρού</h3><p data-k="groomParents"></p></div>
+      </div>
+      <div class="koumparoi rv">
+        <div class="people" style="grid-template-columns:1fr">
+          <div><h3>Κουμπάροι</h3><p data-k="koumparoi"></p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLACES -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow rv">Πού &amp; πότε</p>
+      <h2 class="rv">Η ημέρα μας</h2>
+      <div class="places" id="places"></div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <p class="eyebrow rv">Το πρόγραμμα</p>
+      <h2 class="rv">Η βραδιά βήμα βήμα</h2>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+
+  <!-- INFO -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <p class="eyebrow rv">Χρήσιμα</p>
+      <h2 class="rv">Καλό να ξέρετε</h2>
+      <div class="info-grid" id="info"></div>
+    </div>
+  </section>
+
+  <!-- RSVP -->
+  <section class="band" id="rsvp">
+    <div class="wrap">
+      <p class="eyebrow rv">RSVP</p>
+      <h2 class="rv">Θα είστε μαζί μας;</h2>
+      <p class="lead rv" data-k="rsvpText"></p>
+      <div class="rsvp-card rv" id="rsvp-card">
+        <form id="rsvp-form" novalidate>
+          <div class="field">
+            <label for="f-name">Ονοματεπώνυμο</label>
+            <input type="text" id="f-name" name="name" autocomplete="name" required placeholder="π.χ. Μαρία Παπαδοπούλου">
+          </div>
+          <fieldset class="field">
+            <legend>Θα παρευρεθείτε;</legend>
+            <div class="choice">
+              <input type="radio" name="attend" id="a-yes" value="yes" checked><label for="a-yes">Ναι, με χαρά</label>
+              <input type="radio" name="attend" id="a-no" value="no"><label for="a-no">Δυστυχώς όχι</label>
+            </div>
+          </fieldset>
+          <div class="field" id="guests-field">
+            <label for="f-guests">Αριθμός ατόμων (μαζί με εσάς)</label>
+            <input type="number" id="f-guests" name="guests" min="1" max="10" value="1" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="f-note">Μήνυμα ή διατροφικές προτιμήσεις</label>
+            <textarea id="f-note" name="note" placeholder="Προαιρετικό"></textarea>
+          </div>
+          <button type="submit" class="btn btn-solid">Αποστολή απάντησης</button>
+          <p class="deadline" data-k="rsvpDeadline"></p>
+        </form>
+        <div class="thanks" role="status">
+          <h3>Ευχαριστούμε!</h3>
+          <p id="thanks-msg">Λάβαμε την απάντησή σας.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p class="eyebrow">Ανυπομονούμε να σας δούμε</p>
+      <p class="sig" data-k="namesShort"></p>
+      <small>Demo προσκλητήριο · Φανταστικά στοιχεία</small>
+    </div>
+  </footer>
+</main>
+
+<script>
+/* =====================================================
+   CONFIG: για κάθε νέο ζευγάρι αλλάζεις μόνο αυτό
+   ===================================================== */
+const CONFIG = {
+  bride: "Σοφία",
+  groom: "Κωνσταντίνος",
+  monogram: "Σ&Κ",
+  // ημερομηνία/ώρα μυστηρίου (τοπική ώρα Ελλάδας: χειμώνας +02:00, καλοκαίρι +03:00)
+  dateISO: "2027-12-18T17:00:00+02:00",
+  dateLong: "Σάββατο, 18 Δεκεμβρίου 2027",
+  dateShort: "18 · 12 · 2027",
+  city: "Μέτσοβο",
+  introText: "Έχετε μια πρόσκληση",
+  inviteText: "Με μεγάλη χαρά σας προσκαλούμε<br>να μοιραστείτε μαζί μας<br><em>την πιο όμορφη μέρα της ζωής μας</em>.",
+  brideParents: "Γιώργος &amp; Κατερίνα<br>Αλεξίου",
+  groomParents: "Δημήτρης &amp; Μαρία<br>Μαυρίδη",
+  koumparoi: "Άννα Ζαχαρίου &amp; Πέτρος Λαμπρόπουλος",
+  places: [
+    {
+      time: "17:00 · Μυστήριο",
+      name: "Ιερός Ναός Αγίας Παρασκευής",
+      addr: "Κεντρική Πλατεία, Μέτσοβο",
+      maps: "Ιερός Ναός Αγίας Παρασκευής Μέτσοβο"
+    },
+    {
+      time: "18:30 · Δεξίωση",
+      name: "Αρχοντικό Πευκιάς",
+      addr: "Οδός Τοσίτσα, Μέτσοβο",
+      maps: "Μέτσοβο"
+    }
+  ],
+  timeline: [
+    { t: "16:30", d: "Υποδοχή καλεσμένων στον ναό" },
+    { t: "17:00", d: "Το μυστήριο του γάμου" },
+    { t: "18:30", d: "Ζεστό κρασί καλωσορίσματος δίπλα στο τζάκι" },
+    { t: "19:30", d: "Δείπνο & ο πρώτος μας χορός" },
+    { t: "21:30", d: "Πάρτι μέχρι το πρωί" }
+  ],
+  info: [
+    { h: "Dress code", p: "Χειμωνιάτικο κομψό. Βελούδα και βαθιά χρώματα ευπρόσδεκτα, αποφύγετε τα λευκά.", swatches: ["#5b1f2c","#b8976a","#ece5dc","#2c3640"] },
+    { h: "Καιρός & δρόμος", p: "Τον Δεκέμβριο μπορεί να χιονίσει. Πάρτε ζεστό παλτό και, αν έρθετε με αυτοκίνητο, αλυσίδες." },
+    { h: "Διαμονή", p: "Έχουμε κλείσει δωμάτια σε ξενώνες του χωριού σε προνομιακή τιμή. Επικοινωνήστε μαζί μας." },
+    { h: "Λίστα γάμου", p: "Η παρουσία σας είναι το μεγαλύτερο δώρο. Για όσους επιθυμούν, θα υπάρχει κουτί ευχών στη δεξίωση." }
+  ],
+  rsvpText: "Παρακαλούμε επιβεβαιώστε την παρουσία σας για να ετοιμάσουμε τα πάντα όπως πρέπει.",
+  rsvpDeadline: "Έως 15 Νοεμβρίου 2027",
+  // Αργότερα: URL από Google Apps Script για αποθήκευση σε Google Sheet
+  rsvpEndpoint: ""
+};
+
+/* ===================================================== */
+const $ = s => document.querySelector(s);
+const C = Object.assign({}, CONFIG, { namesShort: `${CONFIG.bride} &amp; ${CONFIG.groom}` });
+
+// fill simple fields
+document.querySelectorAll("[data-k]").forEach(el => {
+  const v = C[el.dataset.k];
+  if (v != null) el.innerHTML = v;
+});
+
+// places
+const mapsUrl = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+$("#places").innerHTML = C.places.map(p => `
+  <article class="place rv">
+    <span class="ptime">${p.time}</span>
+    <h3>${p.name}</h3>
+    <p>${p.addr}</p>
+    <a class="btn btn-solid" href="${mapsUrl(p.maps)}" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+      Οδηγίες
+    </a>
+  </article>`).join("");
+
+// timeline
+$("#timeline").innerHTML = C.timeline.map(x => `
+  <div class="tl rv"><time>${x.t}</time><p>${x.d}</p></div>`).join("");
+
+// info
+$("#info").innerHTML = C.info.map(x => `
+  <div class="info rv"><h3>${x.h}</h3><p>${x.p}</p>
+  ${x.swatches ? `<div class="swatches">${x.swatches.map(c=>`<i style="background:${c}"></i>`).join("")}</div>` : ""}</div>`).join("");
+
+// calendar link
+(() => {
+  const start = new Date(C.dateISO);
+  const end = new Date(start.getTime() + 7 * 3600 * 1000);
+  const fmt = d => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const u = new URL("https://calendar.google.com/calendar/render");
+  u.searchParams.set("action", "TEMPLATE");
+  u.searchParams.set("text", `Γάμος ${C.bride} & ${C.groom}`);
+  u.searchParams.set("dates", `${fmt(start)}/${fmt(end)}`);
+  u.searchParams.set("location", `${C.places[0].name}, ${C.places[0].addr}`);
+  $("#cal-link").href = u.toString();
+})();
+
+// countdown
+const target = new Date(C.dateISO).getTime();
+function tick(){
+  let diff = Math.max(0, target - Date.now());
+  const d = Math.floor(diff / 864e5); diff -= d * 864e5;
+  const h = Math.floor(diff / 36e5);  diff -= h * 36e5;
+  const m = Math.floor(diff / 6e4);   diff -= m * 6e4;
+  const s = Math.floor(diff / 1e3);
+  $("#cd-d").textContent = d;
+  $("#cd-h").textContent = String(h).padStart(2,"0");
+  $("#cd-m").textContent = String(m).padStart(2,"0");
+  $("#cd-s").textContent = String(s).padStart(2,"0");
+}
+tick(); setInterval(tick, 1000);
+
+// envelope open
+const intro = $("#intro");
+let opened = false;
+function openEnvelope(){
+  if (opened) return; opened = true;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo(0, 0);
+  intro.classList.add("open");
+  setTimeout(() => intro.classList.add("slide"), reduce ? 0 : 1300);
+  setTimeout(() => {
+    intro.classList.add("gone");
+    document.body.classList.remove("locked");
+    stopSnow();
+  }, reduce ? 50 : 2700);
+}
+intro.addEventListener("click", openEnvelope);
+intro.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEnvelope(); } });
+
+// snow on the envelope
+const cv = $("#snow"), ctx = cv.getContext("2d");
+let flakes = [], snowRAF = null;
+function sizeSnow(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = Math.round(Math.min(90, innerWidth / 9));
+  flakes = Array.from({ length: n }, () => ({
+    x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+    r: Math.random() * 2.2 + .6, s: Math.random() * .6 + .25,
+    d: Math.random() * Math.PI * 2, o: Math.random() * .5 + .35
+  }));
+}
+function drawSnow(){
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  for (const f of flakes){
+    f.y += f.s; f.d += .01; f.x += Math.sin(f.d) * .3;
+    if (f.y > innerHeight + 5){ f.y = -5; f.x = Math.random() * innerWidth; }
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,250,244,${f.o})`; ctx.fill();
+  }
+  snowRAF = requestAnimationFrame(drawSnow);
+}
+function stopSnow(){ if (snowRAF) cancelAnimationFrame(snowRAF); snowRAF = null; }
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches){
+  sizeSnow(); drawSnow();
+  addEventListener("resize", () => { if (snowRAF) sizeSnow(); });
+}
+
+// reveal on scroll
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+}, { threshold: .15, rootMargin: "0px 0px -40px 0px" });
+document.querySelectorAll(".rv").forEach(el => io.observe(el));
+
+// rsvp
+const form = $("#rsvp-form");
+form.querySelectorAll("input[name=attend]").forEach(r => r.addEventListener("change", () => {
+  $("#guests-field").style.display = form.attend.value === "yes" ? "" : "none";
+}));
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = form.name.value.trim();
+  if (!name) { form.name.focus(); form.name.style.borderColor = "#b4533a"; return; }
+  const data = { name, attend: form.attend.value, guests: form.attend.value === "yes" ? form.guests.value : 0, note: form.note.value.trim() };
+  if (C.rsvpEndpoint) {
+    try { await fetch(C.rsvpEndpoint, { method: "POST", mode: "no-cors", body: JSON.stringify(data) }); } catch (_) {}
+  }
+  $("#thanks-msg").textContent = data.attend === "yes"
+    ? `${name.split(" ")[0]}, σας περιμένουμε με χαρά!`
+    : `${name.split(" ")[0]}, θα μας λείψετε. Σας ευχαριστούμε που μας ενημερώσατε.`;
+  $("#rsvp-card").classList.add("done");
+});
+</script>
+</body>
+</html>
